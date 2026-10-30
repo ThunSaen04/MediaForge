@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MediaForge/MediaForge.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MediaForge.SmokeTests/MediaForge.SmokeTests.csproj" />
+  </Folder>
+</Solution>

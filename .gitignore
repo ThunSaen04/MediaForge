@@ -1,0 +1,16 @@
+# Build output
+bin/
+obj/
+publish/
+installer/Output/
+
+# winget manifests are generated per release by winget/winget-manifest.ps1
+winget/manifests/
+
+# IDE / OS
+.vs/
+.vscode/
+*.user
+*.suo
+Thumbs.db
+desktop.ini

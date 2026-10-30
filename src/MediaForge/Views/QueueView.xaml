@@ -1,0 +1,92 @@
+<UserControl x:Class="MediaForge.Views.QueueView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:MediaForge.Localization"
+             xmlns:ui="clr-namespace:MediaForge.UI">
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button Content="{l:Tr Queue_CancelAll}" ui:Icon.Glyph="&#xE711;" Command="{Binding CancelAllCommand}" Margin="0,0,6,0"/>
+                <Button Content="{l:Tr Queue_ClearFinished}" ui:Icon.Glyph="&#xE894;" Command="{Binding ClearFinishedCommand}"/>
+            </StackPanel>
+            <TextBlock Text="{l:Tr Queue_Title}" Style="{StaticResource PageTitle}" Margin="0" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding Summary}" Style="{StaticResource Hint}" Margin="12,0,0,0" VerticalAlignment="Center"/>
+        </DockPanel>
+
+        <Grid>
+            <ListBox x:Name="JobList" ItemsSource="{Binding Jobs}" HorizontalContentAlignment="Stretch"
+                     Background="Transparent" BorderThickness="0" Padding="0"
+                     ItemContainerStyle="{StaticResource PlainListItem}"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
+                     VirtualizingPanel.ScrollUnit="Pixel">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource Card}" Padding="16,10,10,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*" MinWidth="200"/>
+                                    <ColumnDefinition Width="260"/>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Ellipse Width="8" Height="8" VerticalAlignment="Center" Margin="0,0,14,0"
+                                         Fill="{Binding State, Converter={StaticResource StateBrush}}"/>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip="{Binding Title}"/>
+                                    <TextBlock Text="{Binding Detail}" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                               TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="16,0">
+                                    <ProgressBar Height="4" Maximum="100" Value="{Binding Progress, Mode=OneWay}"
+                                                 IsIndeterminate="{Binding IsIndeterminate}"/>
+                                    <TextBlock Text="{Binding Info}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,5,0,0"
+                                               TextTrimming="CharacterEllipsis" ToolTip="{Binding Info}"/>
+                                </StackPanel>
+
+                                <TextBlock Grid.Column="3" Text="{Binding StateText}" VerticalAlignment="Center" FontSize="12"
+                                           FontWeight="SemiBold" Foreground="{Binding State, Converter={StaticResource StateBrush}}"/>
+
+                                <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Content="&#xE711;" Style="{StaticResource SubtleIconButton}" ToolTip="{l:Tr Queue_Cancel}"
+                                            Visibility="{Binding IsActive, Converter={StaticResource BoolToVis}}"
+                                            Command="{Binding DataContext.CancelCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}"/>
+                                    <Button Content="&#xE72C;" Style="{StaticResource SubtleIconButton}" ToolTip="{l:Tr Queue_Retry}"
+                                            Visibility="{Binding CanRetry, Converter={StaticResource BoolToVis}}"
+                                            Command="{Binding DataContext.RetryCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}"/>
+                                    <Button Content="&#xE838;" Style="{StaticResource SubtleIconButton}" ToolTip="{l:Tr Queue_Open}"
+                                            Visibility="{Binding HasOutput, Converter={StaticResource BoolToVis}}"
+                                            Command="{Binding DataContext.OpenCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}"/>
+                                    <Button Content="&#xE9F9;" Style="{StaticResource SubtleIconButton}" ToolTip="{l:Tr Queue_Log}"
+                                            Command="{Binding DataContext.LogCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <Grid IsHitTestVisible="False">
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Jobs.Count}" Value="0">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                <Rectangle Style="{StaticResource DropZone}"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="&#xE9D5;" FontFamily="{StaticResource IconFont}" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                    <TextBlock Text="{l:Tr Queue_Empty}" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </DockPanel>
+</UserControl>

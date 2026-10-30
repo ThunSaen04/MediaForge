@@ -1,0 +1,226 @@
+<UserControl x:Class="MediaForge.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:MediaForge.Localization"
+             xmlns:core="clr-namespace:MediaForge.Core"
+             xmlns:ui="clr-namespace:MediaForge.UI">
+    <UserControl.Resources>
+        <!-- Windows 11 Settings style: one card per setting, glyph on the left, control on the right. -->
+        <Style x:Key="SettingCard" TargetType="Border" BasedOn="{StaticResource Card}">
+            <Setter Property="Padding" Value="18,14"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+        <Style x:Key="SettingGlyph" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource IconFont}"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Width" Value="22"/>
+            <Setter Property="Margin" Value="0,0,18,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="SettingTitle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+        </Style>
+        <Style x:Key="GroupHeader" TargetType="TextBlock" BasedOn="{StaticResource PageTitle}">
+            <Setter Property="Margin" Value="0,22,0,8"/>
+        </Style>
+        <Style x:Key="Mono" TargetType="TextBlock" BasedOn="{StaticResource Hint}">
+            <Setter Property="FontFamily" Value="{StaticResource MonoFont}"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,0,12,12">
+
+            <!-- Appearance (bound to the window's MainViewModel) -->
+            <StackPanel DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}">
+                <TextBlock Text="{l:Tr Set_Appearance}" Style="{StaticResource GroupHeader}" Margin="0,0,0,8"/>
+                <Border Style="{StaticResource SettingCard}">
+                    <DockPanel>
+                        <TextBlock Text="&#xF2B7;" Style="{StaticResource SettingGlyph}"/>
+                        <ComboBox DockPanel.Dock="Right" Width="180" VerticalAlignment="Center"
+                                  ItemsSource="{Binding Languages}" DisplayMemberPath="Label" SelectedItem="{Binding SelectedLanguage}"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr Lbl_Language}" Style="{StaticResource SettingTitle}"/>
+                            <TextBlock Text="{l:Tr Hint_Language}" Style="{StaticResource Hint}" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+                <Border Style="{StaticResource SettingCard}">
+                    <DockPanel>
+                        <TextBlock Text="&#xE790;" Style="{StaticResource SettingGlyph}"/>
+                        <ComboBox DockPanel.Dock="Right" Width="180" VerticalAlignment="Center"
+                                  ItemsSource="{Binding Themes}" DisplayMemberPath="Label" SelectedItem="{Binding SelectedTheme}"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr Lbl_Theme}" Style="{StaticResource SettingTitle}"/>
+                            <TextBlock Text="{l:Tr Hint_Theme}" Style="{StaticResource Hint}" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Tools -->
+            <DockPanel Margin="0,22,0,8">
+                <Button DockPanel.Dock="Right" Content="{l:Tr Btn_Refresh}" ui:Icon.Glyph="&#xE72C;" Command="{Binding RefreshCommand}"/>
+                <TextBlock Text="{l:Tr Set_Tools}" Style="{StaticResource PageTitle}" Margin="0" VerticalAlignment="Center"/>
+            </DockPanel>
+
+            <!-- FFmpeg -->
+            <Border Style="{StaticResource SettingCard}">
+                <DockPanel>
+                    <TextBlock Text="&#xE8B2;" Style="{StaticResource SettingGlyph}" VerticalAlignment="Top" Margin="0,2,18,0"/>
+                    <StackPanel>
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top">
+                                <Button Content="{l:Tr Btn_DownloadFfmpeg}" ui:Icon.Glyph="&#xE896;" Command="{Binding InstallFfmpegCommand}" Margin="0,0,6,0"/>
+                                <Button Content="{l:Tr Btn_ChooseExe}" Command="{Binding BrowseFfmpegCommand}"/>
+                            </StackPanel>
+                            <StackPanel Margin="0,0,12,0">
+                                <TextBlock Text="FFmpeg / FFprobe" Style="{StaticResource SettingTitle}"/>
+                                <TextBlock Text="{Binding FfmpegStatus}" Style="{StaticResource Mono}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel Margin="0,12,0,0">
+                            <TextBlock Text="{l:Tr Lbl_CustomPath}" VerticalAlignment="Center" Margin="0,0,10,0"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            <TextBox Text="{Binding FfmpegPath}"/>
+                        </DockPanel>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- yt-dlp -->
+            <Border Style="{StaticResource SettingCard}">
+                <DockPanel>
+                    <TextBlock Text="&#xE896;" Style="{StaticResource SettingGlyph}" VerticalAlignment="Top" Margin="0,2,18,0"/>
+                    <StackPanel>
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top">
+                                <Button Content="{l:Tr Btn_DownloadYtDlp}" ui:Icon.Glyph="&#xE896;" Command="{Binding InstallYtDlpCommand}" Margin="0,0,6,0"/>
+                                <Button Content="{l:Tr Btn_UpdateYtDlp}" ui:Icon.Glyph="&#xE895;" Command="{Binding UpdateYtDlpCommand}" Margin="0,0,6,0"/>
+                                <Button Content="{l:Tr Btn_ChooseExe}" Command="{Binding BrowseYtDlpCommand}"/>
+                            </StackPanel>
+                            <StackPanel Margin="0,0,12,0">
+                                <TextBlock Text="yt-dlp" Style="{StaticResource SettingTitle}"/>
+                                <TextBlock Text="{Binding YtDlpStatus}" Style="{StaticResource Mono}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel Margin="0,12,0,0">
+                            <TextBlock Text="{l:Tr Lbl_CustomPath}" VerticalAlignment="Center" Margin="0,0,10,0"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            <TextBox Text="{Binding YtDlpPath}"/>
+                        </DockPanel>
+                        <TextBlock Text="{l:Tr Hint_YtDlpUpdate}" Style="{StaticResource Hint}"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- JS runtime -->
+            <Border Style="{StaticResource SettingCard}">
+                <DockPanel>
+                    <TextBlock Text="&#xE943;" Style="{StaticResource SettingGlyph}" VerticalAlignment="Top" Margin="0,2,18,0"/>
+                    <StackPanel>
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top">
+                                <ComboBox ItemsSource="{Binding JsRuntimes}" DisplayMemberPath="Label" SelectedItem="{Binding JsRuntime}"
+                                          Width="260" Margin="0,0,6,0"/>
+                                <Button Content="{l:Tr Btn_DownloadDeno}" ui:Icon.Glyph="&#xE896;" Command="{Binding InstallDenoCommand}"/>
+                            </StackPanel>
+                            <StackPanel Margin="0,0,12,0">
+                                <TextBlock Text="{l:Tr Set_JsRuntime}" Style="{StaticResource SettingTitle}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding JsStatus}" Style="{StaticResource Mono}"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <TextBlock Text="{l:Tr Hint_JsRuntime}" Style="{StaticResource Hint}" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- Tools folder -->
+            <Border Style="{StaticResource SettingCard}">
+                <DockPanel>
+                    <TextBlock Text="&#xE838;" Style="{StaticResource SettingGlyph}"/>
+                    <Button DockPanel.Dock="Right" Content="{l:Tr Btn_OpenToolsFolder}" Command="{Binding OpenToolsFolderCommand}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding ToolsFolder}" FontFamily="{StaticResource MonoFont}" FontSize="12" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,12,0"/>
+                </DockPanel>
+            </Border>
+
+            <!-- Performance -->
+            <TextBlock Text="{l:Tr Set_Performance}" Style="{StaticResource GroupHeader}"/>
+            <Border Style="{StaticResource SettingCard}">
+                <DockPanel>
+                    <TextBlock Text="&#xE9D9;" Style="{StaticResource SettingGlyph}"/>
+                    <ComboBox DockPanel.Dock="Right" Width="120" VerticalAlignment="Center"
+                              ItemsSource="{Binding ParallelChoices}" SelectedItem="{Binding MaxParallelJobs}"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{l:Tr Lbl_ParallelJobs}" Style="{StaticResource SettingTitle}"/>
+                        <TextBlock Text="{l:Tr Hint_Parallel}" Style="{StaticResource Hint}" Margin="0,2,12,0"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+            <Border Style="{StaticResource SettingCard}">
+                <DockPanel>
+                    <TextBlock Text="&#xE896;" Style="{StaticResource SettingGlyph}"/>
+                    <ComboBox DockPanel.Dock="Right" Width="120" VerticalAlignment="Center"
+                              ItemsSource="{Binding DownloadChoices}" SelectedItem="{Binding MaxParallelDownloads}"/>
+                    <TextBlock Text="{l:Tr Lbl_ParallelDownloads}" Style="{StaticResource SettingTitle}" VerticalAlignment="Center"/>
+                </DockPanel>
+            </Border>
+
+            <!-- About -->
+            <TextBlock Text="{l:Tr Set_About}" Style="{StaticResource GroupHeader}"/>
+            <Border Style="{StaticResource SettingCard}" Padding="18,16">
+                <DockPanel>
+                    <Image Source="/Assets/logo.png" Width="48" Height="48" Margin="0,0,16,0" VerticalAlignment="Center"
+                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <Button DockPanel.Dock="Right" Content="{l:Tr About_Website}" ui:Icon.Glyph="&#xE774;"
+                            Command="{Binding OpenWebsiteCommand}" VerticalAlignment="Center"/>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock FontSize="15" FontWeight="SemiBold">
+                            <Run Text="MediaForge"/>
+                            <Run Text="{l:Tr About_Version}" FontSize="12" FontWeight="Normal" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            <Run Text="{x:Static core:AppInfo.Version}" FontSize="12" FontWeight="Normal" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        </TextBlock>
+                        <TextBlock Margin="0,4,0,0">
+                            <Run Text="{l:Tr About_DevelopedBy}"/>
+                            <Hyperlink NavigateUri="{x:Static core:AppInfo.WebsiteUri}"><Run Text="{x:Static core:AppInfo.Developer}"/></Hyperlink>
+                        </TextBlock>
+                        <TextBlock Text="{x:Static core:AppInfo.Copyright}" Style="{StaticResource Hint}" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+            <Border Style="{StaticResource SettingCard}" DataContext="{Binding DataContext.Update, RelativeSource={RelativeSource AncestorType=Window}}">
+                <DockPanel>
+                    <TextBlock Text="&#xE895;" Style="{StaticResource SettingGlyph}" VerticalAlignment="Top" Margin="0,2,18,0"/>
+                    <Button DockPanel.Dock="Right" Content="{l:Tr Upd_CheckNow}" ui:Icon.Glyph="&#xE72C;" Command="{Binding CheckCommand}"
+                            VerticalAlignment="Top" AutomationProperties.AutomationId="CheckUpdatesButton"/>
+                    <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="{l:Tr Upd_Title}" Style="{StaticResource SettingTitle}"/>
+                        <TextBlock Text="{Binding Status}" Style="{StaticResource Hint}" Margin="0,2,0,0"/>
+                        <CheckBox Content="{l:Tr Upd_Auto}" IsChecked="{Binding AutoCheck}" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+            <Border Style="{StaticResource SettingCard}">
+                <DockPanel>
+                    <TextBlock Text="&#xEB51;" Style="{StaticResource SettingGlyph}" VerticalAlignment="Top" Margin="0,2,18,0"/>
+                    <StackPanel>
+                        <TextBlock Text="{l:Tr About_Credits}" Style="{StaticResource SettingTitle}"/>
+                        <TextBlock Text="{l:Tr About_CreditsText}" Style="{StaticResource Hint}" Margin="0,2,0,8"/>
+                        <TextBlock>
+                            <Hyperlink NavigateUri="https://ffmpeg.org">FFmpeg</Hyperlink>
+                            <Run Text="· LGPL/GPL" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            <Run Text="     "/>
+                            <Hyperlink NavigateUri="https://github.com/yt-dlp/yt-dlp">yt-dlp</Hyperlink>
+                            <Run Text="· Unlicense" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            <Run Text="     "/>
+                            <Hyperlink NavigateUri="https://deno.com">Deno</Hyperlink>
+                            <Run Text="· MIT" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

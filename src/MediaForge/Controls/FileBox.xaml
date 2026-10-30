@@ -1,0 +1,12 @@
+<UserControl x:Class="MediaForge.Controls.FileBox"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:MediaForge.Localization"
+             x:Name="Root">
+    <DockPanel>
+        <Button DockPanel.Dock="Right" Content="&#xE838;" FontFamily="{StaticResource IconFont}" ToolTip="{l:Tr Btn_Browse}"
+                Margin="6,0,0,0" Padding="10,6" Click="OnBrowse"/>
+        <TextBox Text="{Binding FilePath, ElementName=Root}" VerticalContentAlignment="Center"
+                 AllowDrop="True" PreviewDragOver="OnDragOver" PreviewDrop="OnDrop"/>
+    </DockPanel>
+</UserControl>

@@ -1,0 +1,187 @@
+<UserControl x:Class="MediaForge.Views.EditView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:MediaForge.Localization"
+             xmlns:ui="clr-namespace:MediaForge.UI"
+             xmlns:c="clr-namespace:MediaForge.Controls">
+    <UserControl.Resources>
+        <!-- Single-file tools share one card width. -->
+        <Style x:Key="ToolCard" TargetType="Border" BasedOn="{StaticResource Card}">
+            <Setter Property="Width" Value="720"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="24,8,24,24"/>
+        </Style>
+    </UserControl.Resources>
+
+    <DockPanel>
+        <!-- Shared output folder -->
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,18" HorizontalAlignment="Left" Width="720">
+            <TextBlock DockPanel.Dock="Left" Text="{l:Tr Lbl_OutputFolder}" VerticalAlignment="Center" Margin="0,0,14,0"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+            <TextBlock DockPanel.Dock="Bottom" Text="{l:Tr Hint_EditOutput}" Style="{StaticResource Hint}"/>
+            <c:FileBox FilePath="{Binding OutputFolder}" IsFolder="True"/>
+        </DockPanel>
+
+        <TabControl Style="{StaticResource SegmentedTabs}">
+            <!-- Trim -->
+            <TabItem Header="{l:Tr Edit_Trim}" DataContext="{Binding Trim}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Border Style="{StaticResource ToolCard}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Tr Lbl_InputFile}" Style="{StaticResource FieldLabel}"/>
+                            <c:FileBox FilePath="{Binding Input}"/>
+                            <TextBlock Text="{Binding InputInfo}" Style="{StaticResource Hint}"/>
+                            <Grid Margin="0,4,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="{l:Tr Lbl_Start}" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Text="{Binding StartTime, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="{l:Tr Lbl_End}" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Text="{Binding EndTime, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock Text="{l:Tr Hint_TimeFormat}" Style="{StaticResource Hint}"/>
+                            <TextBlock Text="{l:Tr Lbl_Mode}" Style="{StaticResource FieldLabel}"/>
+                            <RadioButton Content="{l:Tr Trim_Fast}" IsChecked="{Binding Fast}" GroupName="TrimMode"/>
+                            <RadioButton Content="{l:Tr Trim_Precise}" IsChecked="{Binding Precise}" GroupName="TrimMode" Margin="0,4,0,0"/>
+                            <Button Content="{l:Tr Btn_Trim}" Command="{Binding StartCommand}" Style="{DynamicResource AccentButtonStyle}"
+                                    HorizontalAlignment="Left" MinWidth="200" Height="40" Margin="0,24,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Merge -->
+            <TabItem Header="{l:Tr Edit_Merge}" DataContext="{Binding Merge}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="16"/>
+                        <ColumnDefinition Width="340"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource Card}" Padding="0">
+                        <DockPanel>
+                            <WrapPanel DockPanel.Dock="Top" Margin="16,14,16,8">
+                                <Button Content="{l:Tr Btn_AddFiles}" ui:Icon.Glyph="&#xE710;" Command="{Binding AddCommand}" Margin="0,0,6,4"/>
+                                <Button Content="&#xE74A;" FontFamily="{StaticResource IconFont}" ToolTip="{l:Tr Btn_MoveUp}" Command="{Binding UpCommand}" Margin="0,0,6,4" Padding="11,7"/>
+                                <Button Content="&#xE74B;" FontFamily="{StaticResource IconFont}" ToolTip="{l:Tr Btn_MoveDown}" Command="{Binding DownCommand}" Margin="0,0,6,4" Padding="11,7"/>
+                                <Button Content="{l:Tr Btn_Remove}" ui:Icon.Glyph="&#xE74D;" Command="{Binding RemoveCommand}" Margin="0,0,6,4"/>
+                                <Button Content="{l:Tr Btn_Clear}" ui:Icon.Glyph="&#xE894;" Command="{Binding ClearCommand}" Margin="0,0,6,4"/>
+                            </WrapPanel>
+                            <ListBox x:Name="MergeList" ItemsSource="{Binding Files}" SelectedIndex="{Binding SelectedIndex}"
+                                     Background="Transparent" BorderThickness="0" Margin="8,0,8,8"
+                                     AllowDrop="True" DragOver="OnMergeDragOver" Drop="OnMergeDrop"/>
+                        </DockPanel>
+                    </Border>
+                    <Border Grid.Column="2" Style="{StaticResource Card}" VerticalAlignment="Top">
+                        <StackPanel>
+                            <TextBlock Text="{l:Tr Lbl_Mode}" Style="{StaticResource PageTitle}"/>
+                            <RadioButton Content="{l:Tr Merge_Fast}" IsChecked="{Binding Fast}" GroupName="MergeMode"/>
+                            <RadioButton Content="{l:Tr Merge_Reencode}" IsChecked="{Binding Reencode}" GroupName="MergeMode" Margin="0,4,0,0"/>
+                            <TextBlock Text="{l:Tr Hint_Merge}" Style="{StaticResource Hint}"/>
+                            <TextBlock Text="{l:Tr Lbl_OutputFormat}" Style="{StaticResource FieldLabel}"/>
+                            <ComboBox ItemsSource="{Binding Formats}" DisplayMemberPath="Label" SelectedItem="{Binding Format}" HorizontalAlignment="Stretch"/>
+                            <TextBlock Text="{l:Tr Lbl_OutputName}" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding OutputName, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Button Content="{l:Tr Btn_Merge}" Command="{Binding StartCommand}" Style="{DynamicResource AccentButtonStyle}"
+                                    HorizontalAlignment="Stretch" Height="40" Margin="0,24,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- Volume -->
+            <TabItem Header="{l:Tr Edit_Volume}" DataContext="{Binding Volume}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Border Style="{StaticResource ToolCard}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Tr Lbl_InputFile}" Style="{StaticResource FieldLabel}"/>
+                            <c:FileBox FilePath="{Binding Input}"/>
+                            <TextBlock Text="{Binding InputInfo}" Style="{StaticResource Hint}"/>
+                            <TextBlock Text="{l:Tr Lbl_Mode}" Style="{StaticResource FieldLabel}"/>
+                            <RadioButton Content="{l:Tr Volume_Normalize}" IsChecked="{Binding Normalize}" GroupName="VolumeMode"/>
+                            <ComboBox ItemsSource="{Binding Targets}" DisplayMemberPath="Label" SelectedItem="{Binding Target}"
+                                      IsEnabled="{Binding Normalize}" Margin="28,6,0,0" HorizontalAlignment="Stretch"/>
+                            <RadioButton Content="{l:Tr Volume_Adjust}" IsChecked="{Binding Adjust}" GroupName="VolumeMode" Margin="0,14,0,0"/>
+                            <DockPanel Margin="28,6,0,0" IsEnabled="{Binding Adjust}">
+                                <TextBlock DockPanel.Dock="Right" Text="{Binding GainText}" Width="70" TextAlignment="Right" VerticalAlignment="Center"
+                                           FontFamily="{StaticResource MonoFont}"/>
+                                <Slider Minimum="-20" Maximum="20" Value="{Binding GainDb}" TickFrequency="0.5" IsSnapToTickEnabled="True"/>
+                            </DockPanel>
+                            <TextBlock Text="{l:Tr Hint_Volume}" Style="{StaticResource Hint}"/>
+                            <Button Content="{l:Tr Btn_Process}" Command="{Binding StartCommand}" Style="{DynamicResource AccentButtonStyle}"
+                                    HorizontalAlignment="Left" MinWidth="200" Height="40" Margin="0,24,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Speed -->
+            <TabItem Header="{l:Tr Edit_Speed}" DataContext="{Binding Speed}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Border Style="{StaticResource ToolCard}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Tr Lbl_InputFile}" Style="{StaticResource FieldLabel}"/>
+                            <c:FileBox FilePath="{Binding Input}"/>
+                            <TextBlock Text="{Binding InputInfo}" Style="{StaticResource Hint}"/>
+                            <TextBlock Text="{l:Tr Lbl_SpeedFactor}" Style="{StaticResource FieldLabel}"/>
+                            <ComboBox ItemsSource="{Binding Factors}" DisplayMemberPath="Label" SelectedItem="{Binding Factor}" Width="220" HorizontalAlignment="Left"/>
+                            <TextBlock Text="{l:Tr Hint_Speed}" Style="{StaticResource Hint}"/>
+                            <Button Content="{l:Tr Btn_Process}" Command="{Binding StartCommand}" Style="{DynamicResource AccentButtonStyle}"
+                                    HorizontalAlignment="Left" MinWidth="200" Height="40" Margin="0,24,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- GIF -->
+            <TabItem Header="{l:Tr Edit_Gif}" DataContext="{Binding Gif}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Border Style="{StaticResource ToolCard}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Tr Lbl_InputVideo}" Style="{StaticResource FieldLabel}"/>
+                            <c:FileBox FilePath="{Binding Input}"/>
+                            <TextBlock Text="{Binding InputInfo}" Style="{StaticResource Hint}"/>
+                            <Grid Margin="0,4,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="{l:Tr Lbl_Start}" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Text="{Binding StartTime, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="{l:Tr Lbl_DurationSec}" Style="{StaticResource FieldLabel}"/>
+                                    <TextBox Text="{Binding Duration, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Text="{l:Tr Lbl_Fps}" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox ItemsSource="{Binding FpsOptions}" DisplayMemberPath="Label" SelectedItem="{Binding Fps}" HorizontalAlignment="Stretch"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="6">
+                                    <TextBlock Text="{l:Tr Lbl_Width}" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox ItemsSource="{Binding Widths}" DisplayMemberPath="Label" SelectedItem="{Binding Width}" HorizontalAlignment="Stretch"/>
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock Text="{l:Tr Hint_TimeFormat}" Style="{StaticResource Hint}"/>
+                            <Button Content="{l:Tr Btn_MakeGif}" Command="{Binding StartCommand}" Style="{DynamicResource AccentButtonStyle}"
+                                    HorizontalAlignment="Left" MinWidth="200" Height="40" Margin="0,24,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</UserControl>

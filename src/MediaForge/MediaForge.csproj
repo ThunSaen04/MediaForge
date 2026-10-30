@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>MediaForge</RootNamespace>
+    <AssemblyName>MediaForge</AssemblyName>
+    <Product>MediaForge</Product>
+    <Version>1.0.0</Version>
+    <Company>Siammods.com</Company>
+    <Authors>Siammods.com</Authors>
+    <Copyright>© 2026 Siammods.com</Copyright>
+    <Description>MediaForge - convert, edit and download video and audio</Description>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Generated from assets\logo.png by assets\make-icons.ps1 -->
+    <ApplicationIcon>Assets\MediaForge.ico</ApplicationIcon>
+    <!-- Application.ThemeMode (Fluent theme) is still marked experimental -->
+    <NoWarn>$(NoWarn);WPF0001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- WPF's implicit usings leave these out -->
+    <Using Include="System.IO" />
+    <Using Include="System.Net.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\MediaForge.ico" />
+    <Resource Include="Assets\logo.png" />
+  </ItemGroup>
+
+</Project>

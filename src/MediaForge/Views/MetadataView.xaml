@@ -1,0 +1,146 @@
+<UserControl x:Class="MediaForge.Views.MetadataView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:MediaForge.Localization"
+             xmlns:ui="clr-namespace:MediaForge.UI"
+             xmlns:c="clr-namespace:MediaForge.Controls">
+    <UserControl.Resources>
+        <Style x:Key="TagLabel" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,4,10,4"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="16"/>
+            <ColumnDefinition Width="1.25*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Input file -->
+        <Border Grid.ColumnSpan="3" Style="{StaticResource Card}" Margin="0,0,0,16" Padding="20,14">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Left" Text="{l:Tr Lbl_InputFile}" VerticalAlignment="Center" Margin="0,0,14,0"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                <Button DockPanel.Dock="Right" Content="{l:Tr Btn_Reload}" ui:Icon.Glyph="&#xE72C;" Command="{Binding ReloadCommand}" Margin="6,0,0,0"/>
+                <c:FileBox FilePath="{Binding Input}"/>
+            </DockPanel>
+        </Border>
+
+        <!-- Probe output -->
+        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="{l:Tr Meta_Info}" Style="{StaticResource PageTitle}" Margin="20,16,20,8"/>
+                <TextBox Text="{Binding InfoText, Mode=OneWay}" IsReadOnly="True" FontFamily="{StaticResource MonoFont}" FontSize="12"
+                         TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                         VerticalContentAlignment="Top" Background="Transparent" BorderThickness="0" Padding="12,0,12,12"/>
+            </DockPanel>
+        </Border>
+
+        <Border Grid.Row="1" Grid.Column="2" Style="{StaticResource Card}" Padding="0">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="20,16,20,20" IsEnabled="{Binding IsLoaded}">
+                    <!-- Tags -->
+                    <TextBlock Text="{l:Tr Meta_Tags}" Style="{StaticResource PageTitle}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="{l:Tr Tag_Title}" Style="{StaticResource TagLabel}"/>
+                        <TextBox Grid.Column="1" Text="{Binding TagTitle}" Margin="0,4"/>
+                        <TextBlock Grid.Column="3" Text="{l:Tr Tag_Artist}" Style="{StaticResource TagLabel}"/>
+                        <TextBox Grid.Column="4" Text="{Binding TagArtist}" Margin="0,4"/>
+
+                        <TextBlock Grid.Row="1" Text="{l:Tr Tag_Album}" Style="{StaticResource TagLabel}"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding TagAlbum}" Margin="0,4"/>
+                        <TextBlock Grid.Row="1" Grid.Column="3" Text="{l:Tr Tag_AlbumArtist}" Style="{StaticResource TagLabel}"/>
+                        <TextBox Grid.Row="1" Grid.Column="4" Text="{Binding TagAlbumArtist}" Margin="0,4"/>
+
+                        <TextBlock Grid.Row="2" Text="{l:Tr Tag_Date}" Style="{StaticResource TagLabel}"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding TagDate}" Margin="0,4"/>
+                        <TextBlock Grid.Row="2" Grid.Column="3" Text="{l:Tr Tag_Track}" Style="{StaticResource TagLabel}"/>
+                        <TextBox Grid.Row="2" Grid.Column="4" Text="{Binding TagTrack}" Margin="0,4"/>
+
+                        <TextBlock Grid.Row="3" Text="{l:Tr Tag_Genre}" Style="{StaticResource TagLabel}"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding TagGenre}" Margin="0,4"/>
+                        <TextBlock Grid.Row="3" Grid.Column="3" Text="{l:Tr Tag_Comment}" Style="{StaticResource TagLabel}"/>
+                        <TextBox Grid.Row="3" Grid.Column="4" Text="{Binding TagComment}" Margin="0,4"/>
+                    </Grid>
+
+                    <!-- Cover -->
+                    <TextBlock Text="{l:Tr Meta_Cover}" Style="{StaticResource SectionHeader}"/>
+                    <DockPanel Margin="0,4,0,0">
+                        <Border DockPanel.Dock="Left" Width="128" Height="128" CornerRadius="8" BorderThickness="1" Margin="0,0,16,0"
+                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                                Background="{DynamicResource SubtleFillColorSecondaryBrush}">
+                            <Grid>
+                                <TextBlock Text="&#xE91B;" FontFamily="{StaticResource IconFont}" FontSize="28"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource TextFillColorTertiaryBrush}"/>
+                                <Image Source="{Binding CoverImage}" Stretch="Uniform"/>
+                            </Grid>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding CoverStatus}" TextWrapping="Wrap" Margin="0,0,0,10"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            <WrapPanel>
+                                <Button Content="{l:Tr Btn_ChooseCover}" ui:Icon.Glyph="&#xE91B;" Command="{Binding ChooseCoverCommand}" Margin="0,0,6,6"/>
+                                <Button Content="{l:Tr Btn_RemoveCover}" ui:Icon.Glyph="&#xE74D;" Command="{Binding RemoveCoverCommand}" Margin="0,0,6,6"/>
+                                <Button Content="{l:Tr Btn_ExportCover}" ui:Icon.Glyph="&#xE74E;" Command="{Binding ExportCoverCommand}" Margin="0,0,6,6"/>
+                            </WrapPanel>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <CheckBox Content="{l:Tr Opt_Overwrite}" IsChecked="{Binding OverwriteOriginal}" Margin="0,16,0,0"/>
+                    <TextBlock Text="{l:Tr Hint_Overwrite}" Style="{StaticResource Hint}" Margin="28,2,0,0"/>
+                    <Button Content="{l:Tr Btn_SaveTags}" Command="{Binding SaveTagsCommand}" Style="{DynamicResource AccentButtonStyle}"
+                            HorizontalAlignment="Left" MinWidth="200" Height="40" Margin="0,16,0,0"/>
+
+                    <!-- Subtitles -->
+                    <Rectangle Height="1" Fill="{DynamicResource DividerStrokeColorDefaultBrush}" Margin="0,24,0,0"/>
+                    <TextBlock Text="{l:Tr Meta_Subtitles}" Style="{StaticResource SectionHeader}" Margin="0,18,0,4"/>
+                    <TextBlock Text="{l:Tr Lbl_SubTracks}" Style="{StaticResource FieldLabel}" Margin="0,4,0,6"/>
+                    <ListBox ItemsSource="{Binding Subtitles}" SelectedItem="{Binding SelectedSubtitle}" DisplayMemberPath="Description"
+                             Height="96"/>
+                    <TextBlock Text="{l:Tr Hint_NoSubTracks}" Style="{StaticResource Hint}"/>
+                    <WrapPanel Margin="0,10,0,0">
+                        <ComboBox ItemsSource="{Binding SubtitleFormats}" DisplayMemberPath="Label" SelectedItem="{Binding SubtitleFormat}"
+                                  Width="110" Margin="0,0,6,6"/>
+                        <Button Content="{l:Tr Btn_ExtractSub}" ui:Icon.Glyph="&#xE78C;" Command="{Binding ExtractSubtitleCommand}" Margin="0,0,6,6"/>
+                        <Button Content="{l:Tr Btn_BurnTrack}" Command="{Binding BurnTrackCommand}" Margin="0,0,6,6"/>
+                    </WrapPanel>
+
+                    <TextBlock Text="{l:Tr Lbl_SubFile}" Style="{StaticResource FieldLabel}"/>
+                    <c:FileBox FilePath="{Binding SubtitleFile}" Kind="subtitle"/>
+                    <DockPanel Margin="0,10,0,0">
+                        <TextBlock Text="{l:Tr Lbl_SubLanguage}" VerticalAlignment="Center" Margin="0,0,10,0"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        <TextBox Text="{Binding SubtitleLanguage}" Width="90" HorizontalAlignment="Left"/>
+                    </DockPanel>
+                    <WrapPanel Margin="0,10,0,0">
+                        <Button Content="{l:Tr Btn_EmbedSub}" Command="{Binding EmbedSubtitleCommand}" Margin="0,0,6,6"/>
+                        <Button Content="{l:Tr Btn_BurnFile}" Command="{Binding BurnFileCommand}" Margin="0,0,6,6"/>
+                    </WrapPanel>
+                    <TextBlock Text="{l:Tr Hint_Subtitles}" Style="{StaticResource Hint}" Margin="0,2,0,0"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>

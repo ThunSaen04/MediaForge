@@ -1,0 +1,152 @@
+<UserControl x:Class="MediaForge.Views.ConvertView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:MediaForge.Localization"
+             xmlns:ui="clr-namespace:MediaForge.UI">
+    <Grid AllowDrop="True" Background="Transparent" DragOver="OnDragOver" Drop="OnDrop">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="16"/>
+            <ColumnDefinition Width="360"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- File list -->
+        <Border Style="{StaticResource Card}" Padding="0">
+            <DockPanel>
+                <DockPanel DockPanel.Dock="Top" Margin="20,16,16,8">
+                    <TextBlock Text="{l:Tr Convert_Files}" Style="{StaticResource PageTitle}" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                    <WrapPanel HorizontalAlignment="Right">
+                        <Button Content="{l:Tr Btn_AddFiles}" ui:Icon.Glyph="&#xE710;" Command="{Binding AddFilesCommand}" Margin="0,0,6,4"/>
+                        <Button Content="{l:Tr Btn_AddFolder}" ui:Icon.Glyph="&#xE8F4;" Command="{Binding AddFolderCommand}" Margin="0,0,6,4"/>
+                        <Button Content="{l:Tr Btn_RemoveSelected}" ui:Icon.Glyph="&#xE74D;" Command="{Binding RemoveSelectedCommand}"
+                                CommandParameter="{Binding SelectedItems, ElementName=FileList}" Margin="0,0,6,4"/>
+                        <Button Content="{l:Tr Btn_Clear}" ui:Icon.Glyph="&#xE894;" Command="{Binding ClearCommand}" Margin="0,0,0,4"/>
+                    </WrapPanel>
+                </DockPanel>
+                <DockPanel DockPanel.Dock="Bottom" Margin="20,8,20,14">
+                    <CheckBox DockPanel.Dock="Right" Content="{l:Tr Opt_IncludeSubfolders}" IsChecked="{Binding IncludeSubfolders}"/>
+                    <TextBlock Text="{Binding FilesSummary}" Style="{StaticResource Hint}" Margin="0" VerticalAlignment="Center"/>
+                </DockPanel>
+                <Grid Margin="8,0">
+                    <ListView x:Name="FileList" ItemsSource="{Binding Files}" SelectionMode="Extended" Style="{StaticResource FlatList}">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="{l:Tr Col_Name}" Width="320" DisplayMemberBinding="{Binding Name}"/>
+                                <GridViewColumn Header="{l:Tr Col_Size}" Width="90" DisplayMemberBinding="{Binding SizeText}"/>
+                                <GridViewColumn Header="{l:Tr Col_Folder}" Width="360" DisplayMemberBinding="{Binding Folder}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                    <Grid Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}" IsHitTestVisible="False">
+                        <Rectangle Style="{StaticResource DropZone}" Margin="8,40,8,4"/>
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="&#xE896;" FontFamily="{StaticResource IconFont}" FontSize="32" HorizontalAlignment="Center"
+                                       Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"/>
+                            <TextBlock Text="{l:Tr Hint_DropFiles}" Margin="0,12,0,0" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="360"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </DockPanel>
+        </Border>
+
+        <!-- Options (start button pinned below so it is always visible) -->
+        <DockPanel Grid.Column="2">
+            <Button DockPanel.Dock="Bottom" Content="{Binding StartText}" Command="{Binding StartCommand}" Style="{DynamicResource AccentButtonStyle}"
+                    HorizontalAlignment="Stretch" Height="44" Margin="0,12,0,0" FontWeight="SemiBold"/>
+            <Border Style="{StaticResource Card}" Padding="0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="20,16,20,20">
+                        <TextBlock Text="{l:Tr Convert_OutputType}" Style="{StaticResource PageTitle}"/>
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton Content="{l:Tr Convert_ToAudio}" IsChecked="{Binding IsAudioMode}" GroupName="ConvertMode" Margin="0,0,20,0"/>
+                            <RadioButton Content="{l:Tr Convert_ToVideo}" IsChecked="{Binding IsVideoMode}" GroupName="ConvertMode"/>
+                        </StackPanel>
+
+                        <!-- Audio settings -->
+                        <StackPanel Visibility="{Binding IsAudioMode, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="{l:Tr Lbl_Format}" Style="{StaticResource FieldLabel}"/>
+                            <ComboBox ItemsSource="{Binding AudioFormats}" DisplayMemberPath="Label" SelectedItem="{Binding SelectedAudioFormat}" HorizontalAlignment="Stretch"/>
+                            <TextBlock Text="{l:Tr Lbl_Bitrate}" Style="{StaticResource FieldLabel}"/>
+                            <ComboBox ItemsSource="{Binding Bitrates}" DisplayMemberPath="Label" SelectedItem="{Binding Bitrate}" HorizontalAlignment="Stretch"
+                                      IsEnabled="{Binding IsBitrateEnabled}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="{l:Tr Lbl_SampleRate}" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox ItemsSource="{Binding SampleRates}" DisplayMemberPath="Label" SelectedItem="{Binding SampleRate}" HorizontalAlignment="Stretch"
+                                              IsEnabled="{Binding IsAudioEncodeEnabled}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="{l:Tr Lbl_Channels}" Style="{StaticResource FieldLabel}"/>
+                                    <ComboBox ItemsSource="{Binding ChannelOptions}" DisplayMemberPath="Label" SelectedItem="{Binding Channels}" HorizontalAlignment="Stretch"
+                                              IsEnabled="{Binding IsAudioEncodeEnabled}"/>
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock Text="{l:Tr Hint_AudioCopy}" Style="{StaticResource Hint}" Margin="0,10,0,0"/>
+                        </StackPanel>
+
+                        <!-- Video settings -->
+                        <StackPanel Visibility="{Binding IsVideoMode, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="{l:Tr Lbl_Format}" Style="{StaticResource FieldLabel}"/>
+                            <ComboBox ItemsSource="{Binding VideoFormats}" DisplayMemberPath="Label" SelectedItem="{Binding SelectedVideoFormat}" HorizontalAlignment="Stretch"/>
+                            <StackPanel IsEnabled="{Binding IsReencode}">
+                                <TextBlock Text="{l:Tr Lbl_Encoder}" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox ItemsSource="{Binding Encoders}" DisplayMemberPath="Label" SelectedItem="{Binding Encoder}" HorizontalAlignment="Stretch"
+                                          IsEnabled="{Binding IsEncoderEnabled}"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="{l:Tr Lbl_Quality}" Style="{StaticResource FieldLabel}"/>
+                                        <ComboBox ItemsSource="{Binding Qualities}" DisplayMemberPath="Label" SelectedItem="{Binding VideoQuality}" HorizontalAlignment="Stretch"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="{l:Tr Lbl_EncodeSpeed}" Style="{StaticResource FieldLabel}"/>
+                                        <ComboBox ItemsSource="{Binding Speeds}" DisplayMemberPath="Label" SelectedItem="{Binding Speed}" HorizontalAlignment="Stretch"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="{l:Tr Lbl_Resolution}" Style="{StaticResource FieldLabel}"/>
+                                        <ComboBox ItemsSource="{Binding Resolutions}" DisplayMemberPath="Label" SelectedItem="{Binding Resolution}" HorizontalAlignment="Stretch"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="{l:Tr Lbl_Fps}" Style="{StaticResource FieldLabel}"/>
+                                        <ComboBox ItemsSource="{Binding FpsOptions}" DisplayMemberPath="Label" SelectedItem="{Binding Fps}" HorizontalAlignment="Stretch"/>
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock Text="{l:Tr Lbl_AudioBitrate}" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox ItemsSource="{Binding VideoAudioBitrates}" DisplayMemberPath="Label" SelectedItem="{Binding VideoAudioBitrate}" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                            <CheckBox Content="{l:Tr Opt_RemoveAudio}" IsChecked="{Binding RemoveAudio}" Margin="0,14,0,0"/>
+                            <TextBlock Text="{l:Tr Hint_Remux}" Style="{StaticResource Hint}"/>
+                        </StackPanel>
+
+                        <!-- Output -->
+                        <TextBlock Text="{l:Tr Lbl_OutputFolder}" Style="{StaticResource SectionHeader}"/>
+                        <RadioButton Content="{l:Tr Opt_SameFolder}" IsChecked="{Binding UseSourceFolder}" GroupName="ConvertOut"/>
+                        <RadioButton Content="{l:Tr Opt_CustomFolder}" IsChecked="{Binding UseCustomFolder}" GroupName="ConvertOut" Margin="0,4,0,8"/>
+                        <DockPanel IsEnabled="{Binding UseCustomFolder}">
+                            <Button DockPanel.Dock="Right" Content="&#xE838;" FontFamily="{StaticResource IconFont}" ToolTip="{l:Tr Btn_Browse}"
+                                    Command="{Binding BrowseOutputCommand}" Margin="6,0,0,0" Padding="10,6"/>
+                            <TextBox Text="{Binding OutputFolder}" VerticalContentAlignment="Center"/>
+                        </DockPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </DockPanel>
+    </Grid>
+</UserControl>
