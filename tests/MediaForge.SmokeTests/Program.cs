@@ -183,6 +183,71 @@ await Check("trim mp3 precise keeps cover", async () =>
     return Expect(info.Cover is not null && Near(info.Duration, 4, 0.15), info);
 });
 
+TimeRange[] twoRanges = [new(0.5, 2), new(3.5, 5)];
+
+await Check("trim 2 ranges fast (copy + concat)", async () =>
+{
+    var job = NewJob();
+    await Converter.TrimRangesAsync(video, twoRanges, false, outDir, job, default);
+    var info = await MediaProbe.RunAsync(job.OutputPath!);
+    return Expect(info.HasVideo && info.HasAudio && info.Duration is > 2.5 and < 5, info);
+});
+
+await Check("trim 2 ranges precise (video)", async () =>
+{
+    var job = NewJob();
+    await Converter.TrimRangesAsync(video, twoRanges, true, outDir, job, default);
+    var info = await MediaProbe.RunAsync(job.OutputPath!);
+    return Expect(info.HasVideo && info.HasAudio && Near(info.Duration, 3, 0.15), info);
+});
+
+await Check("trim 2 ranges precise mp3 keeps cover", async () =>
+{
+    var job = NewJob();
+    await Converter.TrimRangesAsync(mp3, twoRanges, true, outDir, job, default);
+    var info = await MediaProbe.RunAsync(job.OutputPath!);
+    return Expect(info.Cover is not null && Near(info.Duration, 3, 0.15), info);
+});
+
+await Check("trim 2 ranges fast mp3", async () =>
+{
+    var job = NewJob();
+    await Converter.TrimRangesAsync(mp3, twoRanges, false, outDir, job, default);
+    var info = await MediaProbe.RunAsync(job.OutputPath!);
+    return Expect(info.HasAudio && Near(info.Duration, 3, 0.2), info);
+});
+
+await Check("time range math", () =>
+{
+    var keep = TimeRanges.Subtract([new(0, 10)], new(3, 4), 10);
+    keep = TimeRanges.Add(keep, new(3.5, 3.8), 10);
+    var cuts = TimeRanges.Invert(keep, 10);
+    var ok = keep.Count == 3 && cuts.Count == 2 && Near(TimeRanges.Total(keep), 9.3, 0.001)
+             && TimeRanges.Normalize([new(2, 1), new(1.5, 3), new(9, 12)], 10) is [(1, 3), (9, 10)];
+    return Task.FromResult(ok ? null : $"keep=[{string.Join(", ", keep)}] cuts=[{string.Join(", ", cuts)}]");
+});
+
+await Check("audio preview decodes PCM + peaks", async () =>
+{
+    using var preview = AudioPreview.Start(mp3, 5);
+    await preview.Completion;
+    var seconds = preview.DecodedSeconds;
+    var peaks = new float[preview.PeakCount];
+    preview.CopyPeaks(0, peaks);
+    var ok = preview.Error is null && Near(seconds, 5, 0.1) && Near(peaks.Length, 500, 10) && peaks.Max() > 0.05
+             && new FileInfo(preview.PcmPath).Length == preview.DecodedFrames * AudioPreview.BytesPerFrame;
+    return ok ? null : $"error={preview.Error} seconds={seconds:0.00} peaks={peaks.Length} max={peaks.DefaultIfEmpty().Max():0.00}";
+});
+
+await Check("audio preview reports a file without audio", async () =>
+{
+    var silent = Path.Combine(inDir, "no audio.mp4");
+    await Gen("-f", "lavfi", "-i", "testsrc=size=320x240:rate=10", "-t", "1", "-c:v", "libx264", "-pix_fmt", "yuv420p", silent);
+    using var preview = AudioPreview.Start(silent, 1);
+    await preview.Completion;
+    return preview.Error is not null && preview.DecodedFrames == 0 ? null : "expected an error";
+});
+
 await Check("merge fast (same codecs)", async () =>
 {
     var job = NewJob();

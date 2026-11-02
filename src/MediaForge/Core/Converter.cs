@@ -115,6 +115,80 @@ public static class Converter
         await RunToFileAsync(job, output, a, duration, ct);
     }
 
+    /// <summary>Keeps several ranges of one file and joins them, in order, into a single output.</summary>
+    public static async Task TrimRangesAsync(string input, IReadOnlyList<TimeRange> ranges, bool precise, string outDir,
+        Job job, CancellationToken ct)
+    {
+        if (ranges.Count == 0) throw new UserException(Loc.T("Err_TrimNoRanges"));
+        if (ranges.Count == 1)
+        {
+            var only = ranges[0];
+            await TrimAsync(input, TimeSpan.FromSeconds(only.Start), TimeSpan.FromSeconds(only.End), precise, outDir, job, ct);
+            return;
+        }
+
+        var info = await MediaProbe.RunAsync(input, ct);
+        var total = TimeRanges.Total(ranges);
+        var ext = MediaTypes.Ext(input);
+        var output = OutputNamer.Reserve(outDir, BaseName(input) + "_trim", ext);
+
+        if (precise)
+        {
+            // trim/atrim per range, then the concat filter: frame-accurate cuts, one encode.
+            var hasVideo = info.Video is not null && !MediaTypes.IsAudioExtension(ext);
+            var hasAudio = info.HasAudio;
+            var graph = new StringBuilder();
+            var pads = new StringBuilder();
+            for (var i = 0; i < ranges.Count; i++)
+            {
+                var (s, e) = (Fmt.Num(ranges[i].Start), Fmt.Num(ranges[i].End));
+                if (hasVideo)
+                {
+                    graph.Append($"[0:{info.Video!.Index}]trim=start={s}:end={e},setpts=PTS-STARTPTS,{EvenScale}[v{i}];");
+                    pads.Append($"[v{i}]");
+                }
+                if (hasAudio)
+                {
+                    graph.Append($"[0:{info.Audio!.Index}]atrim=start={s}:end={e},asetpts=PTS-STARTPTS[a{i}];");
+                    pads.Append($"[a{i}]");
+                }
+            }
+            graph.Append(pads)
+                 .Append($"concat=n={ranges.Count}:v={(hasVideo ? 1 : 0)}:a={(hasAudio ? 1 : 0)}")
+                 .Append(hasVideo ? "[v]" : "").Append(hasAudio ? "[a]" : "");
+
+            List<string> a = ["-i", input, "-filter_complex", graph.ToString()];
+            if (hasVideo) a.AddRange(["-map", "[v]"]);
+            if (hasAudio) a.AddRange(["-map", "[a]"]);
+            if (!hasVideo) MapCoverOrDropVideo(a, info, ext);
+            a.AddRange(["-sn", "-dn"]);
+            AddReencode(a, ext, hasVideo, hasAudio, info);
+            if (ext is "mp4" or "mov" or "m4v") a.AddRange(["-movflags", "+faststart"]);
+            a.Add(output);
+            await RunToFileAsync(job, output, a, total, ct);
+            return;
+        }
+
+        // Stream copy through the concat demuxer, reading the same file once per range via inpoint/outpoint.
+        var file = $"file '{input.Replace("'", "'\\''")}'";
+        var list = Path.Combine(AppPaths.TempDir, $"trim_{Guid.NewGuid():N}.txt");
+        await File.WriteAllLinesAsync(list,
+            ranges.SelectMany(r => new[] { file, $"inpoint {Fmt.Num(r.Start)}", $"outpoint {Fmt.Num(r.End)}" }),
+            new UTF8Encoding(false), ct);
+        try
+        {
+            List<string> c = ["-f", "concat", "-safe", "0", "-i", list, "-map", "0", "-dn", "-c", "copy"];
+            if (ext is "mp4" or "mov" or "m4v") c.AddRange(["-movflags", "+faststart"]);
+            if (ext == "mp3") c.AddRange(["-id3v2_version", "3"]);
+            c.Add(output);
+            await RunToFileAsync(job, output, c, total, ct);
+        }
+        finally
+        {
+            Tools.TryDelete(list);
+        }
+    }
+
     public static async Task MergeAsync(IReadOnlyList<string> inputs, bool reencode, string outDir, string name,
         string ext, Job job, CancellationToken ct)
     {

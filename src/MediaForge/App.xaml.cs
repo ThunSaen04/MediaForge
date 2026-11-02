@@ -32,6 +32,12 @@ public partial class App : Application
         window.Show();
     }
 
+    protected override void OnExit(ExitEventArgs e)
+    {
+        AudioPreview.DisposeAll();
+        base.OnExit(e);
+    }
+
     private static void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         Dialogs.Error(e.Exception.Message);

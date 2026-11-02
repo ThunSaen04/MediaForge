@@ -26,27 +26,131 @@
             <!-- Trim -->
             <TabItem Header="{l:Tr Edit_Trim}" DataContext="{Binding Trim}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <Border Style="{StaticResource ToolCard}">
+                    <Border Style="{StaticResource Card}" Padding="24,8,24,24" MaxWidth="1180" HorizontalAlignment="Stretch">
                         <StackPanel>
                             <TextBlock Text="{l:Tr Lbl_InputFile}" Style="{StaticResource FieldLabel}"/>
                             <c:FileBox FilePath="{Binding Input}"/>
                             <TextBlock Text="{Binding InputInfo}" Style="{StaticResource Hint}"/>
-                            <Grid Margin="0,4,0,0">
+
+                            <!-- Timeline + transport. Shortcuts live here (no text boxes inside), and the
+                                 buttons don't take focus so Space keeps meaning play/pause. -->
+                            <StackPanel x:Name="TimelinePanel">
+                                <StackPanel.InputBindings>
+                                    <KeyBinding Key="Space" Command="{Binding PlayPauseCommand}"/>
+                                    <KeyBinding Key="I" Command="{Binding MarkInCommand}"/>
+                                    <KeyBinding Key="O" Command="{Binding MarkOutCommand}"/>
+                                    <KeyBinding Key="Delete" Command="{Binding CutSelectionCommand}"/>
+                                    <KeyBinding Key="Z" Modifiers="Control" Command="{Binding UndoCommand}"/>
+                                </StackPanel.InputBindings>
+                                <StackPanel.Resources>
+                                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                        <Setter Property="Focusable" Value="False"/>
+                                        <Setter Property="Margin" Value="0,0,6,6"/>
+                                    </Style>
+                                    <Style x:Key="ToolIcon" TargetType="Button" BasedOn="{StaticResource SubtleIconButton}">
+                                        <Setter Property="Focusable" Value="False"/>
+                                    </Style>
+                                </StackPanel.Resources>
+
+                                <DockPanel Margin="0,18,0,6">
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <TextBlock Text="{Binding PositionText}" FontFamily="{StaticResource MonoFont}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <Button Style="{StaticResource ToolIcon}" Content="&#xE71F;" ToolTip="{l:Tr Btn_ZoomOut}" Click="OnZoomOut"/>
+                                        <Button Style="{StaticResource ToolIcon}" Content="&#xE8A3;" ToolTip="{l:Tr Btn_ZoomIn}" Click="OnZoomIn"/>
+                                        <Button Style="{StaticResource ToolIcon}" Content="&#xE9A6;" ToolTip="{l:Tr Btn_ZoomFit}" Click="OnZoomFit"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{l:Tr Lbl_Timeline}" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                                </DockPanel>
+                                <c:TrimTimeline x:Name="Timeline" Height="180" Unloaded="OnTimelineUnloaded"
+                                                Preview="{Binding Preview}" Duration="{Binding Duration}"
+                                                Ranges="{Binding Ranges}" Playhead="{Binding Playhead, Mode=OneWay}"
+                                                SelectionStart="{Binding SelectionStart}" SelectionEnd="{Binding SelectionEnd}"
+                                                SeekCommand="{Binding SeekCommand}" StatusText="{Binding WaveStatus}"
+                                                AccentBrush="{DynamicResource AccentFillColorDefaultBrush}"
+                                                CutBrush="{DynamicResource SystemFillColorCriticalBrush}"
+                                                TextBrush="{DynamicResource TextFillColorPrimaryBrush}"
+                                                TrackBrush="{DynamicResource ControlStrongFillColorDefaultBrush}"/>
+                                <TextBlock Text="{Binding WaveStatus}" Style="{StaticResource Hint}"/>
+                                <TextBlock Text="{l:Tr Hint_Timeline}" Style="{StaticResource Hint}"/>
+
+                                <!-- Listen -->
+                                <WrapPanel Margin="0,14,0,0">
+                                    <Button Command="{Binding PlayPauseCommand}" Style="{DynamicResource AccentButtonStyle}" Focusable="False"
+                                            ToolTip="{l:Tr Btn_Play}" Width="48" Height="34" Margin="0,0,10,6" Padding="0">
+                                        <TextBlock Text="{Binding PlayGlyph}" FontFamily="{StaticResource IconFont}" FontSize="16"/>
+                                    </Button>
+                                    <Button Content="{l:Tr Btn_PlaySelection}" ui:Icon.Glyph="&#xE8B0;" Command="{Binding PlaySelectionCommand}"/>
+                                    <Button Content="{l:Tr Btn_PlayJoin}" ui:Icon.Glyph="&#xE71B;" Command="{Binding PlayJoinCommand}"
+                                            ToolTip="{l:Tr Tip_PlayJoin}"/>
+                                    <CheckBox Content="{l:Tr Trim_SkipCuts}" IsChecked="{Binding SkipCuts}" Focusable="False"
+                                              VerticalAlignment="Center" Margin="8,0,0,6"/>
+                                </WrapPanel>
+
+                                <!-- Select and edit -->
+                                <TextBlock Text="{Binding SelectionText}" Margin="0,10,0,6"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                                <WrapPanel>
+                                    <Button Content="{l:Tr Btn_MarkIn}" Command="{Binding MarkInCommand}"/>
+                                    <Button Content="{l:Tr Btn_MarkOut}" Command="{Binding MarkOutCommand}" Margin="0,0,14,6"/>
+                                    <Button Content="{l:Tr Btn_CutSelection}" ui:Icon.Glyph="&#xE8C6;" Command="{Binding CutSelectionCommand}"/>
+                                    <Button Content="{l:Tr Btn_KeepSelection}" ui:Icon.Glyph="&#xE710;" Command="{Binding KeepSelectionCommand}"/>
+                                    <Button Content="{l:Tr Btn_KeepOnlySelection}" ui:Icon.Glyph="&#xE71C;" Command="{Binding KeepOnlySelectionCommand}" Margin="0,0,14,6"/>
+                                    <Button Content="{l:Tr Btn_Undo}" ui:Icon.Glyph="&#xE7A7;" Command="{Binding UndoCommand}"/>
+                                    <Button Content="{l:Tr Btn_ResetRanges}" ui:Icon.Glyph="&#xE72C;" Command="{Binding ResetRangesCommand}"/>
+                                </WrapPanel>
+                            </StackPanel>
+
+                            <!-- Kept ranges -->
+                            <DockPanel Margin="0,14,0,6">
+                                <TextBlock DockPanel.Dock="Right" Text="{Binding Summary}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock Text="{l:Tr Lbl_Ranges}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" VerticalAlignment="Center"/>
+                            </DockPanel>
+                            <Grid Margin="0,0,0,4" TextElement.Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextElement.FontSize="12">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition/>
-                                    <ColumnDefinition Width="12"/>
-                                    <ColumnDefinition/>
+                                    <ColumnDefinition Width="36"/>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <StackPanel>
-                                    <TextBlock Text="{l:Tr Lbl_Start}" Style="{StaticResource FieldLabel}"/>
-                                    <TextBox Text="{Binding StartTime, UpdateSourceTrigger=PropertyChanged}"/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Text="{l:Tr Lbl_End}" Style="{StaticResource FieldLabel}"/>
-                                    <TextBox Text="{Binding EndTime, UpdateSourceTrigger=PropertyChanged}"/>
-                                </StackPanel>
+                                <TextBlock Text="#"/>
+                                <TextBlock Grid.Column="1" Text="{l:Tr Lbl_Start}"/>
+                                <TextBlock Grid.Column="3" Text="{l:Tr Lbl_End}"/>
+                                <TextBlock Grid.Column="5" Text="{l:Tr Lbl_Length}"/>
                             </Grid>
+                            <ItemsControl ItemsSource="{Binding Rows}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="36"/>
+                                                <ColumnDefinition Width="170"/>
+                                                <ColumnDefinition Width="10"/>
+                                                <ColumnDefinition Width="170"/>
+                                                <ColumnDefinition Width="16"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Width="24" Height="24" CornerRadius="12" HorizontalAlignment="Left"
+                                                    Background="{DynamicResource AccentFillColorDefaultBrush}">
+                                                <TextBlock Text="{Binding Number}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                           FontWeight="SemiBold" Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/>
+                                            </Border>
+                                            <TextBox Grid.Column="1" Text="{Binding StartText}" FontFamily="{StaticResource MonoFont}"/>
+                                            <TextBox Grid.Column="3" Text="{Binding EndText}" FontFamily="{StaticResource MonoFont}"/>
+                                            <TextBlock Grid.Column="5" Text="{Binding LengthText}" VerticalAlignment="Center" FontFamily="{StaticResource MonoFont}"/>
+                                            <StackPanel Grid.Column="6" Orientation="Horizontal">
+                                                <Button Style="{StaticResource SubtleIconButton}" Content="&#xE768;" ToolTip="{l:Tr Tip_PlayRange}" Command="{Binding PlayCommand}"/>
+                                                <Button Style="{StaticResource SubtleIconButton}" Content="&#xE74D;" ToolTip="{l:Tr Tip_RemoveRange}" Command="{Binding RemoveCommand}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                             <TextBlock Text="{l:Tr Hint_TimeFormat}" Style="{StaticResource Hint}"/>
+
                             <TextBlock Text="{l:Tr Lbl_Mode}" Style="{StaticResource FieldLabel}"/>
                             <RadioButton Content="{l:Tr Trim_Fast}" IsChecked="{Binding Fast}" GroupName="TrimMode"/>
                             <RadioButton Content="{l:Tr Trim_Precise}" IsChecked="{Binding Precise}" GroupName="TrimMode" Margin="0,4,0,0"/>

@@ -33,4 +33,8 @@
     <Resource Include="Assets\logo.png" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="3.3.0" />
+  </ItemGroup>
+
 </Project>

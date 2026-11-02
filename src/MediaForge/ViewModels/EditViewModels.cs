@@ -51,7 +51,9 @@ public abstract class SingleInputTool : Observable
         get;
         set
         {
-            if (Set(ref field, value)) _ = LoadInfoAsync();
+            if (!Set(ref field, value)) return;
+            OnInputChanged();
+            _ = LoadInfoAsync();
         }
     } = "";
 
@@ -80,6 +82,8 @@ public abstract class SingleInputTool : Observable
         }
     }
 
+    protected virtual void OnInputChanged() { }
+
     protected virtual void OnInfoLoaded(MediaInfo info) { }
 
     private async Task StartAsync()
@@ -101,54 +105,6 @@ public abstract class SingleInputTool : Observable
         if (TimeParser.TryParse(text, out value)) return true;
         Dialogs.Info(Loc.F("Msg_BadTime", text));
         return false;
-    }
-}
-
-public sealed class TrimViewModel(EditViewModel owner) : SingleInputTool(owner)
-{
-    public string StartTime { get; set => Set(ref field, value); } = "0:00:00";
-    public string EndTime { get; set => Set(ref field, value); } = "";
-
-    public bool Precise
-    {
-        get;
-        set
-        {
-            if (Set(ref field, value)) Notify(nameof(Fast));
-        }
-    }
-
-    public bool Fast
-    {
-        get => !Precise;
-        set => Precise = !value;
-    }
-
-    protected override void OnInfoLoaded(MediaInfo info)
-    {
-        StartTime = "0:00:00";
-        EndTime = Fmt.Clock(info.Duration);
-    }
-
-    protected override Job? CreateJob(string input, string outDir)
-    {
-        if (!TryTime(StartTime, out var start)) return null;
-        TimeSpan? end = null;
-        if (!string.IsNullOrWhiteSpace(EndTime))
-        {
-            if (!TryTime(EndTime, out var e)) return null;
-            end = e;
-        }
-        if (end <= start)
-        {
-            Dialogs.Info(Loc.T("Err_TrimRange"));
-            return null;
-        }
-
-        var precise = Precise;
-        var detail = Loc.F("Detail_Trim", Fmt.Clock(start.TotalSeconds), end is { } x ? Fmt.Clock(x.TotalSeconds) : "∞");
-        return new Job(Path.GetFileName(input), detail, JobKind.Process,
-            (j, ct) => Converter.TrimAsync(input, start, end, precise, outDir, j, ct));
     }
 }
 
