@@ -64,7 +64,9 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Tasks: deskto
 [Run]
 Filename: "{app}\{#MyAppExe}"; Description: "{cm:LaunchProgram,{#MyAppName}}"; Flags: nowait postinstall skipifsilent
 ; In-app updates run "setup.exe /SILENT ... /UPDATE=1": start the new version once it is installed.
-Filename: "{app}\{#MyAppExe}"; Flags: nowait; Check: IsInAppUpdate
+; runasoriginaluser keeps the app out of Setup's RedirectionGuard, which it would otherwise inherit:
+; yt-dlp then fails with WinError 448 on any user-made junction in PATH.
+Filename: "{app}\{#MyAppExe}"; Flags: nowait runasoriginaluser; Check: IsInAppUpdate
 
 ; Settings (%APPDATA%\MediaForge) and downloaded tools (%LOCALAPPDATA%\MediaForge) are left in place on uninstall.
 
